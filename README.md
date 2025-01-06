@@ -19,7 +19,7 @@ local function createGUI()
 
     ScreenGui.Parent = Player.PlayerGui
 
-    -- Main Frame Styling (more modern)
+    -- Main Frame Styling (modernized)
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28) -- Dark background
     MainFrame.BackgroundTransparency = 0.2
@@ -87,6 +87,7 @@ local function createGUI()
     GeneralButton.Position = UDim2.new(0, 10, 0, 30)
     GeneralButton.TextXAlignment = Enum.TextXAlignment.Center
 
+    -- Function to create buttons
     local function createButton(text, positionY, callback)
         local Button = Instance.new("TextButton")
         Button.Size = UDim2.new(0, 420, 0, 50)
@@ -143,72 +144,77 @@ local function createGUI()
     end)
 
     -- Modificação para copiar motor de outros carros
-    createButton("Copiar motor carro (de outro jogador)", 0.1, function()
-        -- Exibe uma lista de jogadores para copiar o motor de um dos carros
-        local playerList = {}
-        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-            if otherPlayer ~= Player then
-                table.insert(playerList, otherPlayer)
-            end
+createButton("Copiar motor carro (de outro jogador)", 0.1, function()
+    -- Exibe uma lista de jogadores para copiar o motor de um dos carros
+    local playerList = {}
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= Player then
+            table.insert(playerList, otherPlayer)
         end
+    end
 
-        -- Criação de uma interface simples para o jogador escolher outro jogador para copiar o motor
-        local SelectPlayerGui = Instance.new("ScreenGui")
-        local Frame = Instance.new("Frame")
-        local UICorner = Instance.new("UICorner")
-        local ListLayout = Instance.new("UIListLayout")
-        local CloseButton = Instance.new("TextButton")
-        local ScrollFrame = Instance.new("ScrollingFrame")
+    -- Criação de uma interface simples para o jogador escolher outro jogador para copiar o motor
+    local SelectPlayerGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame")
+    local UICorner = Instance.new("UICorner")
+    local ListLayout = Instance.new("UIListLayout")
+    local ScrollFrame = Instance.new("ScrollingFrame")
 
-        SelectPlayerGui.Parent = Player.PlayerGui
-        Frame.Parent = SelectPlayerGui
-        Frame.Size = UDim2.new(0, 300, 0, 300)
-        Frame.Position = UDim2.new(0.35, 0, 0.35, 0)
-        Frame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-        UICorner.Parent = Frame
+    SelectPlayerGui.Parent = Player.PlayerGui
+    Frame.Parent = SelectPlayerGui
+    Frame.Size = UDim2.new(0, 300, 0, 300)
+    Frame.Position = UDim2.new(0.35, 0, 0.35, 0)
+    Frame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    UICorner.Parent = Frame
 
-        -- Scrollable Player List
-        ScrollFrame.Parent = Frame
-        ScrollFrame.Size = UDim2.new(1, -20, 1, -50)
-        ScrollFrame.Position = UDim2.new(0, 10, 0, 50)
-        ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #playerList * 40)
-        ScrollFrame.ScrollBarThickness = 10
-        ListLayout.Parent = ScrollFrame
-        ListLayout.Padding = UDim.new(0, 10)
+    -- Scrollable Player List
+    ScrollFrame.Parent = Frame
+    ScrollFrame.Size = UDim2.new(1, -20, 1, -50)
+    ScrollFrame.Position = UDim2.new(0, 10, 0, 50)
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #playerList * 40)
+    ScrollFrame.ScrollBarThickness = 10
+    ListLayout.Parent = ScrollFrame
+    ListLayout.Padding = UDim.new(0, 10)
 
-        -- Close button inside player list
-        CloseButton.Parent = Frame
-        CloseButton.Text = "Fechar"
-        CloseButton.Font = Enum.Font.Gotham
-        CloseButton.TextSize = 18
-        CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        CloseButton.BackgroundTransparency = 1
-        CloseButton.Position = UDim2.new(1, -70, 1, -30)
-        CloseButton.MouseButton1Click:Connect(function()
-            SelectPlayerGui:Destroy()
-        end)
-
-        for _, otherPlayer in ipairs(playerList) do
-            local PlayerButton = Instance.new("TextButton")
-            PlayerButton.Size = UDim2.new(0, 280, 0, 40)
-            PlayerButton.Text = otherPlayer.Name
-            PlayerButton.Font = Enum.Font.Gotham
-            PlayerButton.TextSize = 16
-            PlayerButton.BackgroundColor3 = Color3.fromRGB(54, 54, 54)
-            PlayerButton.BackgroundTransparency = 0.4
-            PlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            PlayerButton.Parent = ScrollFrame
-
-            PlayerButton.MouseButton1Click:Connect(function()
-                local otherModule = findModule(otherPlayer.Name)
-                if otherModule then
-                    copiedModule = otherModule:Clone()
-                    carName = getCarName(otherPlayer.Name)
-                    SelectPlayerGui:Destroy()
-                end
-            end)
-        end
+    -- Botão de Fechar Fora da UI
+    local CloseButtonOutside = Instance.new("TextButton")
+    CloseButtonOutside.Parent = SelectPlayerGui
+    CloseButtonOutside.Text = "Fechar"
+    CloseButtonOutside.Font = Enum.Font.Gotham
+    CloseButtonOutside.TextSize = 18
+    CloseButtonOutside.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButtonOutside.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Fundo vermelho
+    CloseButtonOutside.BorderSizePixel = 2  -- Borda
+    CloseButtonOutside.BorderColor3 = Color3.fromRGB(200, 0, 0)  -- Cor da borda
+    CloseButtonOutside.Size = UDim2.new(0, 100, 0, 40)
+    CloseButtonOutside.Position = UDim2.new(0.35, 0, 0.9, 0)  -- Posicionado fora da UI, mais para baixo
+    CloseButtonOutside.TextXAlignment = Enum.TextXAlignment.Center
+    CloseButtonOutside.MouseButton1Click:Connect(function()
+        SelectPlayerGui:Destroy()
     end)
+
+    for _, otherPlayer in ipairs(playerList) do
+        local PlayerButton = Instance.new("TextButton")
+        PlayerButton.Size = UDim2.new(0, 280, 0, 40)
+        PlayerButton.Text = otherPlayer.Name
+        PlayerButton.Font = Enum.Font.Gotham
+        PlayerButton.TextSize = 16
+        PlayerButton.BackgroundColor3 = Color3.fromRGB(54, 54, 54)
+        PlayerButton.BackgroundTransparency = 0.4
+        PlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        PlayerButton.Parent = ScrollFrame
+
+        PlayerButton.MouseButton1Click:Connect(function()
+            local otherModule = findModule(otherPlayer.Name)
+            if otherModule then
+                copiedModule = otherModule:Clone()
+                carName = getCarName(otherPlayer.Name)
+                SelectPlayerGui:Destroy()
+            end
+        end)
+    end
+end)
+
 
     createButton("Colar motor", 0.2, function()
         if copiedModule then
