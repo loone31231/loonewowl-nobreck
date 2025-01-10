@@ -257,7 +257,8 @@ end)
                     if suspension then
                         local spring = suspension:FindFirstChild("Spring")
                         if spring and spring:IsA("SpringConstraint") then
-                            spring.MaxLength = 1.82
+                            spring.MaxLength = 1.63
+                            spring.MinLength = 1.60
                         end
                     end
                 end
