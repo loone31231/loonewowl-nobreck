@@ -1,222 +1,124 @@
-getgenv().cuppink = true
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
-
+-- Definindo o player
 local Player = game.Players.LocalPlayer
 
-local function createGUI()
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local BrandingLabel = Instance.new("TextLabel") 
-    local MinimizeButton = Instance.new("TextButton")
-    local CloseButton = Instance.new("TextButton")
-    local SidebarFrame = Instance.new("Frame")
-    local UICornerSidebar = Instance.new("UICorner")
-    local GeneralButton = Instance.new("TextButton")
+-- Função de inicialização da GUI Fluent
+local Window = Fluent:CreateWindow({
+    Title = "Ibicatu Sp  1.0",
+    SubTitle = "by Nobre_CK & easyFIFA17",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
 
-    ScreenGui.Parent = Player.PlayerGui
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
 
-    -- Main Frame Styling (modernized)
-    MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28) -- Dark background
-    MainFrame.BackgroundTransparency = 0.2
-    MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
-    MainFrame.Size = UDim2.new(0, 600, 0, 450)
-    MainFrame.Active = true
-    MainFrame.Draggable = true
+local Options = Fluent.Options
 
-    UICorner.CornerRadius = UDim.new(0, 20)  -- Rounded corners
-    UICorner.Parent = MainFrame
+-- Funções para manipular o carro
+local copiedModule
+local carName
+local containerName = Player.Name .. "sCar"
+local moduleName = "A-Chassis Tune"
 
-    -- Branding label
-    BrandingLabel.Parent = MainFrame
-    BrandingLabel.Text = "Ibicatu SP - Made by: easyFIFA17 & Nobre_CK"
-    BrandingLabel.Font = Enum.Font.GothamBold
-    BrandingLabel.TextSize = 18
-    BrandingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    BrandingLabel.BackgroundTransparency = 1
-    BrandingLabel.Size = UDim2.new(1, -20, 0, 40)
-    BrandingLabel.Position = UDim2.new(0, 10, 0, 5) 
-    BrandingLabel.TextXAlignment = Enum.TextXAlignment.Center
+local function findModule(owner)
+    local container = workspace:FindFirstChild(owner .. "sCar")
+    if not container then return nil end
+    return container:FindFirstChild(moduleName)
+end
 
-    -- Minimize Button
-    MinimizeButton.Parent = MainFrame
-    MinimizeButton.Text = "-"
-    MinimizeButton.Font = Enum.Font.Gotham
-    MinimizeButton.TextSize = 24
-    MinimizeButton.BackgroundTransparency = 1
-    MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinimizeButton.Size = UDim2.new(0, 30, 0, 25)
-    MinimizeButton.Position = UDim2.new(1, -70, 0, 10)
-    MinimizeButton.MouseButton1Click:Connect(function()
-        MainFrame.Visible = false
-    end)
-
-    -- Close Button
-    CloseButton.Parent = MainFrame
-    CloseButton.Text = "x"
-    CloseButton.Font = Enum.Font.Gotham
-    CloseButton.TextSize = 22
-    CloseButton.BackgroundTransparency = 1
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.Size = UDim2.new(0, 30, 0, 25)
-    CloseButton.Position = UDim2.new(1, -40, 0, 10)
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-    end)
-
-    -- Sidebar Frame
-    SidebarFrame.Parent = MainFrame
-    SidebarFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 44)  -- Sidebar darker color
-    SidebarFrame.Size = UDim2.new(0, 120, 1, 0)
-
-    UICornerSidebar.CornerRadius = UDim.new(0, 20)  -- Rounded corners for sidebar
-    UICornerSidebar.Parent = SidebarFrame
-
-    -- Sidebar Button for General
-    GeneralButton.Parent = SidebarFrame
-    GeneralButton.Text = "General"
-    GeneralButton.Font = Enum.Font.Gotham
-    GeneralButton.TextSize = 16
-    GeneralButton.BackgroundTransparency = 1
-    GeneralButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    GeneralButton.Size = UDim2.new(1, -20, 0, 50)
-    GeneralButton.Position = UDim2.new(0, 10, 0, 30)
-    GeneralButton.TextXAlignment = Enum.TextXAlignment.Center
-
-    -- Function to create buttons
-    local function createButton(text, positionY, callback)
-        local Button = Instance.new("TextButton")
-        Button.Size = UDim2.new(0, 420, 0, 50)
-        Button.Position = UDim2.new(0, 140, positionY, 0)
-        Button.Text = text
-        Button.Font = Enum.Font.Gotham
-        Button.TextSize = 16
-        Button.BackgroundColor3 = Color3.fromRGB(54, 54, 54)  -- Slightly lighter background for buttons
-        Button.BackgroundTransparency = 0.4
-        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Button.TextXAlignment = Enum.TextXAlignment.Center
-        Button.Parent = MainFrame
-
-        local UICorner = Instance.new("UICorner")
-        UICorner.CornerRadius = UDim.new(0, 15)  -- More rounded corners for buttons
-        UICorner.Parent = Button
-
-        Button.MouseButton1Click:Connect(callback)
-
-        return Button
+local function getCarName(owner)
+    local container = workspace:FindFirstChild(owner .. "sCar")
+    if container then
+        local carNameValue = container:FindFirstChild("CarName")
+        if carNameValue then return carNameValue.Value end
     end
+    return "Desconhecido"
+end
 
-    local copiedModule
-    local carName
-    local containerName = Player.Name .. "sCar"
-    local moduleName = "A-Chassis Tune"
-
-    local function findModule(owner)
-        local container = workspace:FindFirstChild(owner .. "sCar")
-        if not container then return nil end
-        return container:FindFirstChild(moduleName)
-    end
-
-    local function getCarName(owner)
-        local container = workspace:FindFirstChild(owner .. "sCar")
-        if container then
-            local carNameValue = container:FindFirstChild("CarName")
-            if carNameValue then return carNameValue.Value end
-        end
-        return "Desconhecido"
-    end
-
-    createButton("Excluir Placa do carro", 0.6, function()
-        local container = workspace:FindFirstChild(containerName)
-        if container then
-            local body = container:FindFirstChild("Body")
-            if body then
-                local placaBR = body:FindFirstChild("PlacaBR")
-                if placaBR then
-                    placaBR:Destroy()
-                end
+local function adjustAndLockSounds(container)
+    local body = container:FindFirstChild("Body")
+    if body then
+        local engine = body:FindFirstChild("Engine")
+        if engine then
+            local turboSound = engine:FindFirstChild("Turbo")
+            if turboSound and turboSound:IsA("Sound") then
+                turboSound.Volume = 0.6
+                turboSound.Changed:Connect(function(property)
+                    if property == "Volume" and turboSound.Volume ~= 0.6 then
+                        turboSound.Volume = 0.6
+                    end
+                end)
+            end
+            local bovSound = engine:FindFirstChild("Bov")
+            if bovSound and bovSound:IsA("Sound") then
+                bovSound.Volume = 0.5
             end
         end
-    end)
+    end
+end
 
-    -- Modificação para copiar motor de outros carros
-createButton("Copiar motor carro (de outro jogador)", 0.1, function()
-    -- Exibe uma lista de jogadores para copiar o motor de um dos carros
-    local playerList = {}
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+-- Dropdown para selecionar outro jogador e copiar motor (primeiro)
+local Dropdown = Tabs.Main:AddDropdown("Selecionar jogador para copiar motor", { 
+    Title = "Copiar motor de jogador",
+    Values = {},  -- Vai ser preenchido dinamicamente com a lista de jogadores
+    Multi = false,
+    Default = Default,
+    Callback = function(selectedPlayerName)
+        print("Você selecionou: " .. selectedPlayerName)
+        -- Copiar motor do jogador selecionado
+        local otherModule = findModule(selectedPlayerName)
+        if otherModule then
+            copiedModule = otherModule:Clone()
+            carName = getCarName(selectedPlayerName)
+            print("Motor copiado de: " .. carName)
+        else
+            print("Não foi possível encontrar o carro do jogador: " .. selectedPlayerName)
+        end
+    end
+})
+
+-- Função para atualizar a lista de jogadores no Dropdown
+local function updatePlayerList()
+    local playerNames = {}
+    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
         if otherPlayer ~= Player then
-            table.insert(playerList, otherPlayer)
+            table.insert(playerNames, otherPlayer.Name)
         end
     end
+    Dropdown:SetValues(playerNames)  -- Atualiza os valores do Dropdown com a lista de jogadores
+end
 
-    -- Criação de uma interface simples para o jogador escolher outro jogador para copiar o motor
-    local SelectPlayerGui = Instance.new("ScreenGui")
-    local Frame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local ListLayout = Instance.new("UIListLayout")
-    local ScrollFrame = Instance.new("ScrollingFrame")
+-- Chamar a função de atualização da lista de jogadores quando o script começar
+updatePlayerList()
 
-    SelectPlayerGui.Parent = Player.PlayerGui
-    Frame.Parent = SelectPlayerGui
-    Frame.Size = UDim2.new(0, 300, 0, 300)
-    Frame.Position = UDim2.new(0.35, 0, 0.35, 0)
-    Frame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    UICorner.Parent = Frame
-
-    -- Scrollable Player List
-    ScrollFrame.Parent = Frame
-    ScrollFrame.Size = UDim2.new(1, -20, 1, -50)
-    ScrollFrame.Position = UDim2.new(0, 10, 0, 50)
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #playerList * 40)
-    ScrollFrame.ScrollBarThickness = 10
-    ListLayout.Parent = ScrollFrame
-    ListLayout.Padding = UDim.new(0, 10)
-
-    -- Botão de Fechar Fora da UI
-    local CloseButtonOutside = Instance.new("TextButton")
-    CloseButtonOutside.Parent = SelectPlayerGui
-    CloseButtonOutside.Text = "Fechar"
-    CloseButtonOutside.Font = Enum.Font.Gotham
-    CloseButtonOutside.TextSize = 18
-    CloseButtonOutside.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButtonOutside.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Fundo vermelho
-    CloseButtonOutside.BorderSizePixel = 2  -- Borda
-    CloseButtonOutside.BorderColor3 = Color3.fromRGB(200, 0, 0)  -- Cor da borda
-    CloseButtonOutside.Size = UDim2.new(0, 100, 0, 40)
-    CloseButtonOutside.Position = UDim2.new(0.35, 0, 0.9, 0)  -- Posicionado fora da UI, mais para baixo
-    CloseButtonOutside.TextXAlignment = Enum.TextXAlignment.Center
-    CloseButtonOutside.MouseButton1Click:Connect(function()
-        SelectPlayerGui:Destroy()
-    end)
-
-    for _, otherPlayer in ipairs(playerList) do
-        local PlayerButton = Instance.new("TextButton")
-        PlayerButton.Size = UDim2.new(0, 280, 0, 40)
-        PlayerButton.Text = otherPlayer.Name
-        PlayerButton.Font = Enum.Font.Gotham
-        PlayerButton.TextSize = 16
-        PlayerButton.BackgroundColor3 = Color3.fromRGB(54, 54, 54)
-        PlayerButton.BackgroundTransparency = 0.4
-        PlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        PlayerButton.Parent = ScrollFrame
-
-        PlayerButton.MouseButton1Click:Connect(function()
-            local otherModule = findModule(otherPlayer.Name)
-            if otherModule then
-                copiedModule = otherModule:Clone()
-                carName = getCarName(otherPlayer.Name)
-                SelectPlayerGui:Destroy()
-            end
-        end)
+-- Copiar motor do seu próprio carro (segunda opção)
+Tabs.Main:AddButton({
+    Title = "Copiar motor do seu carro",
+    Description = "Copiar o motor do seu próprio carro.",
+    Callback = function()
+        local originalModule = findModule(Player.Name)
+        if originalModule then
+            copiedModule = originalModule:Clone()
+            carName = getCarName(Player.Name)
+            print("Motor copiado do seu carro: " .. carName)
+        end
     end
-end)
+})
 
-
-    createButton("Colar motor", 0.2, function()
+-- Função para colar o motor copiado no seu carro
+Tabs.Main:AddButton({
+    Title = "Colar motor no carro",
+    Description = "Colar o motor copiado no seu carro.",
+    Callback = function()
         if copiedModule then
             local container = workspace:FindFirstChild(containerName)
             if container then
@@ -224,25 +126,55 @@ end)
                 if existingModule then existingModule:Destroy() end
                 copiedModule.Parent = container
                 copiedModule.Name = moduleName
+                adjustAndLockSounds(container)
                 copiedModule = nil
+                print("Motor colado no carro.")
             end
         end
-    end)
+    end
+})
 
-    createButton("Aumentar som turbo", 0.3, function()
+-- Função para excluir a placa do carro
+Tabs.Main:AddButton({
+    Title = "Excluir Placa do Carro",
+    Description = "Excluir a placa do seu carro.",
+    Callback = function()
         local container = workspace:FindFirstChild(containerName)
         if container then
-            local engine = container:FindFirstChild("Body"):FindFirstChild("Engine")
-            if engine then
-                local turboSound = engine:FindFirstChild("Turbo")
-                if turboSound then
-                    turboSound.Volume = 0.6
+            local body = container:FindFirstChild("Body")
+            if body then
+                local placaBR = body:FindFirstChild("PlacaBR")
+                if placaBR then
+                    placaBR:Destroy()
+                    print("Placa do carro excluída.")
                 end
             end
         end
-    end)
+    end
+})
 
-    createButton("Rebaixar Suspensao (nao visivel para os outros)", 0.4, function()
+-- Função para ajustar o som do turbo
+Tabs.Main:AddButton({
+    Title = "Ajustar som do turbo",
+    Description = "Ajusta o som do turbo no carro.",
+    Callback = function()
+        local container = workspace:FindFirstChild(containerName)
+        if container then
+            adjustAndLockSounds(container)
+            print("Som do turbo ajustado.")
+        end
+    end
+})
+
+-- Slider para ajustar a suspensão do carro
+Tabs.Main:AddSlider("Suspensão", {
+    Title = "Ajustar Suspensão",
+    Description = "Ajuste a altura da suspensão do carro.",
+    Default = 1.6,  -- Valor inicial para o MinLength
+    Min = 1.2,      -- Valor mínimo para o MinLength
+    Max = 2.0,      -- Valor máximo para o MinLength
+    Rounding = 2,    -- Arredondar para 2 casas decimais
+    Callback = function(value)
         local container = workspace:FindFirstChild(containerName)
         if container then
             local wheels = container:FindFirstChild("Wheels")
@@ -257,8 +189,8 @@ end)
                     if suspension then
                         local spring = suspension:FindFirstChild("Spring")
                         if spring and spring:IsA("SpringConstraint") then
-                            spring.MaxLength = 1.63
-                            spring.MinLength = 1.60
+                            spring.MinLength = value               -- Ajusta o MinLength com o valor do slider
+                            spring.MaxLength = value + 0.03        -- Ajusta o MaxLength, sempre 0.03 a mais que o MinLength
                         end
                     end
                 end
@@ -268,22 +200,40 @@ end)
                 if RL then adjustWheelSuspension(RL) end
                 if RR then adjustWheelSuspension(RR) end
             end
+            print("Suspensão do carro ajustada para: " .. value)
         end
-    end)
+    end
+})
 
-    createButton("Aumentar Estabilidade (Gravidade) Rebaixa Visivel", 0.5, function()
+-- Função para ajustar a gravidade
+Tabs.Main:AddButton({
+    Title = "Ajustar Gravidade",
+    Description = "Ajusta a gravidade para aumentar a estabilidade.",
+    Callback = function()
         game.Workspace.Gravity = 400
-    end)
+        print("Gravidade ajustada.")
+    end
+})
 
-    Player.CharacterAdded:Connect(function()
-        ScreenGui.Enabled = true
-    end)
+-- Configuração e Notificação de Carregamento
+Fluent:Notify({
+    Title = "Fluent",
+    Content = "O script foi carregado com sucesso.",
+    Duration = 8
+})
 
-    game:GetService("UserInputService").InputBegan:Connect(function(input)
-        if input.KeyCode == Enum.KeyCode.LeftControl then
-            MainFrame.Visible = true
-        end
-    end)
-end
+-- Configuração para salvar e carregar
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
-createGUI()
+Window:SelectTab(1)
+
+-- Exemplos de manipulação e interação com a GUI fluente
+Fluent:Notify({
+    Title = "Exemplo",
+    Content = "Carregamento do script finalizado.",
+    Duration = 5
+})
