@@ -2,12 +2,11 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
--- Definindo o player
 local Player = game.Players.LocalPlayer
 
--- Função de inicialização da GUI Fluent
+-- Inicialização da GUI Fluent
 local Window = Fluent:CreateWindow({
-    Title = "Ibicatu Sp  1.0",
+    Title = "Ibicatu SP🚗 ",
     SubTitle = "by Nobre_CK & easyFIFA17",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -21,86 +20,68 @@ local Tabs = {
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
-local Options = Fluent.Options
-
--- Funções para manipular o carro
-local copiedModule
-local carName
+-- Variáveis principais
+local copiedModule = nil
 local containerName = Player.Name .. "sCar"
 local moduleName = "A-Chassis Tune"
 
+-- Função para encontrar um módulo específico em um carro
 local function findModule(owner)
     local container = workspace:FindFirstChild(owner .. "sCar")
-    if not container then return nil end
-    return container:FindFirstChild(moduleName)
-end
-
-local function getCarName(owner)
-    local container = workspace:FindFirstChild(owner .. "sCar")
     if container then
-        local carNameValue = container:FindFirstChild("CarName")
-        if carNameValue then return carNameValue.Value end
+        return container:FindFirstChild(moduleName)
     end
-    return "Desconhecido"
+    return nil
 end
 
-local function adjustAndLockSounds(container)
-    local body = container:FindFirstChild("Body")
-    if body then
-        local engine = body:FindFirstChild("Engine")
-        if engine then
-            local turboSound = engine:FindFirstChild("Turbo")
-            if turboSound and turboSound:IsA("Sound") then
-                turboSound.Volume = 0.6
-                turboSound.Changed:Connect(function(property)
-                    if property == "Volume" and turboSound.Volume ~= 0.6 then
-                        turboSound.Volume = 0.6
-                    end
-                end)
-            end
-            local bovSound = engine:FindFirstChild("Bov")
-            if bovSound and bovSound:IsA("Sound") then
-                bovSound.Volume = 0.5
+-- Função para buscar jogadores com carros
+local function getPlayersWithCars()
+    local playersWithCars = {}
+    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= Player then
+            local container = workspace:FindFirstChild(otherPlayer.Name .. "sCar")
+            if container then
+                table.insert(playersWithCars, otherPlayer.Name)
             end
         end
     end
+    return playersWithCars
 end
 
--- Dropdown para selecionar outro jogador e copiar motor (primeiro)
-local Dropdown = Tabs.Main:AddDropdown("Selecionar jogador para copiar motor", { 
-    Title = "Copiar motor de jogador",
-    Values = {},  -- Vai ser preenchido dinamicamente com a lista de jogadores
+-- Dropdown para copiar motor de outro jogador
+Tabs.Main:AddDropdown("Copiar motor de outro jogador", {
+    Title = "Copiar motor de outro jogador",
+    Values = getPlayersWithCars(),
     Multi = false,
-    Default = Default,
+    Default = nil,
     Callback = function(selectedPlayerName)
-        print("Você selecionou: " .. selectedPlayerName)
-        -- Copiar motor do jogador selecionado
-        local otherModule = findModule(selectedPlayerName)
-        if otherModule then
-            copiedModule = otherModule:Clone()
-            carName = getCarName(selectedPlayerName)
-            print("Motor copiado de: " .. carName)
+        if selectedPlayerName then
+            local originalModule = findModule(selectedPlayerName)
+            if originalModule then
+                copiedModule = originalModule:Clone()
+                Fluent:Notify({
+                    Title = "Motor Copiado",
+                    Content = "O motor do carro de " .. selectedPlayerName .. " foi copiado com sucesso.",
+                    Duration = 5
+                })
+            else
+                Fluent:Notify({
+                    Title = "Erro",
+                    Content = "Não foi possível encontrar o carro do jogador selecionado.",
+                    Duration = 5
+                })
+            end
         else
-            print("Não foi possível encontrar o carro do jogador: " .. selectedPlayerName)
+            Fluent:Notify({
+                Title = "Erro",
+                Content = "Nenhum jogador selecionado.",
+                Duration = 5
+            })
         end
     end
 })
 
--- Função para atualizar a lista de jogadores no Dropdown
-local function updatePlayerList()
-    local playerNames = {}
-    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
-        if otherPlayer ~= Player then
-            table.insert(playerNames, otherPlayer.Name)
-        end
-    end
-    Dropdown:SetValues(playerNames)  -- Atualiza os valores do Dropdown com a lista de jogadores
-end
-
--- Chamar a função de atualização da lista de jogadores quando o script começar
-updatePlayerList()
-
--- Copiar motor do seu próprio carro (segunda opção)
+-- Botão para copiar motor do próprio carro (sem notificação)
 Tabs.Main:AddButton({
     Title = "Copiar motor do seu carro",
     Description = "Copiar o motor do seu próprio carro.",
@@ -108,13 +89,11 @@ Tabs.Main:AddButton({
         local originalModule = findModule(Player.Name)
         if originalModule then
             copiedModule = originalModule:Clone()
-            carName = getCarName(Player.Name)
-            print("Motor copiado do seu carro: " .. carName)
         end
     end
 })
 
--- Função para colar o motor copiado no seu carro
+-- Botão para colar motor copiado no próprio carro (sem notificação)
 Tabs.Main:AddButton({
     Title = "Colar motor no carro",
     Description = "Colar o motor copiado no seu carro.",
@@ -123,21 +102,21 @@ Tabs.Main:AddButton({
             local container = workspace:FindFirstChild(containerName)
             if container then
                 local existingModule = container:FindFirstChild(moduleName)
-                if existingModule then existingModule:Destroy() end
+                if existingModule then
+                    existingModule:Destroy()
+                end
                 copiedModule.Parent = container
                 copiedModule.Name = moduleName
-                adjustAndLockSounds(container)
                 copiedModule = nil
-                print("Motor colado no carro.")
             end
         end
     end
 })
 
--- Função para excluir a placa do carro
+-- Botão para excluir a placa do carro
 Tabs.Main:AddButton({
     Title = "Excluir Placa do Carro",
-    Description = "Excluir a placa do seu carro.",
+    Description = "Excluir a placa do seu carro (CLIENT)",
     Callback = function()
         local container = workspace:FindFirstChild(containerName)
         if container then
@@ -146,83 +125,100 @@ Tabs.Main:AddButton({
                 local placaBR = body:FindFirstChild("PlacaBR")
                 if placaBR then
                     placaBR:Destroy()
-                    print("Placa do carro excluída.")
                 end
             end
         end
     end
 })
 
--- Função para ajustar o som do turbo
-Tabs.Main:AddButton({
-    Title = "Ajustar som do turbo",
-    Description = "Ajusta o som do turbo no carro.",
-    Callback = function()
-        local container = workspace:FindFirstChild(containerName)
+-- Entrada para editar a placa do carro
+Tabs.Main:AddInput("Editar Identifier da Placa", {
+    Title = "Editar placa do carro",
+    Default = default,
+    Placeholder = default,
+    Description = "(CLIENT)",
+    Numeric = false,
+    Finished = false,
+    Callback = function(Value)
+        local container = workspace:FindFirstChild(Player.Name .. "sCar")
         if container then
-            adjustAndLockSounds(container)
-            print("Som do turbo ajustado.")
-        end
-    end
-})
-
--- Slider para ajustar a suspensão do carro
-Tabs.Main:AddSlider("Suspensão", {
-    Title = "Ajustar Suspensão",
-    Description = "Ajuste a altura da suspensão do carro.",
-    Default = 1.6,  -- Valor inicial para o MinLength
-    Min = 1.2,      -- Valor mínimo para o MinLength
-    Max = 2.0,      -- Valor máximo para o MinLength
-    Rounding = 2,    -- Arredondar para 2 casas decimais
-    Callback = function(value)
-        local container = workspace:FindFirstChild(containerName)
-        if container then
-            local wheels = container:FindFirstChild("Wheels")
-            if wheels then
-                local FL = wheels:FindFirstChild("FL")
-                local FR = wheels:FindFirstChild("FR")
-                local RL = wheels:FindFirstChild("RL")
-                local RR = wheels:FindFirstChild("RR")
-
-                local function adjustWheelSuspension(wheel)
-                    local suspension = wheel:FindFirstChild("SuspensionGeometry")
-                    if suspension then
-                        local spring = suspension:FindFirstChild("Spring")
-                        if spring and spring:IsA("SpringConstraint") then
-                            spring.MinLength = value               -- Ajusta o MinLength com o valor do slider
-                            spring.MaxLength = value + 0.03        -- Ajusta o MaxLength, sempre 0.03 a mais que o MinLength
+            local body = container:FindFirstChild("Body")
+            if body then
+                local placas = {body:FindFirstChild("PlacaBR"), body:FindFirstChild("PlacaBRdip")}
+                for _, placa in ipairs(placas) do
+                    if placa and placa:FindFirstChild("Plates") then
+                        local plates = placa.Plates
+                        for _, plate in ipairs(plates:GetChildren()) do
+                            if plate:FindFirstChild("SGUI") and plate.SGUI:FindFirstChild("Identifier") then
+                                plate.SGUI.Identifier.Text = Value
+                            end
                         end
                     end
                 end
-
-                if FL then adjustWheelSuspension(FL) end
-                if FR then adjustWheelSuspension(FR) end
-                if RL then adjustWheelSuspension(RL) end
-                if RR then adjustWheelSuspension(RR) end
             end
-            print("Suspensão do carro ajustada para: " .. value)
         end
     end
 })
 
--- Função para ajustar a gravidade
+-- Slider para ajustar suspensão
+Tabs.Main:AddSlider("Suspensão", {
+    Title = "Ajustar Suspensão",
+    Default = 1.6,
+    Description = "Ajustar altura da suspensao";
+    Min = 1.2,
+    Max = 2.0,
+    Rounding = 2,
+    Callback = function(value)
+        local container = workspace:FindFirstChild(containerName)
+        if container and container:FindFirstChild("Wheels") then
+            for _, wheel in ipairs(container.Wheels:GetChildren()) do
+                if wheel:FindFirstChild("SuspensionGeometry") then
+                    local spring = wheel.SuspensionGeometry:FindFirstChild("Spring")
+                    if spring and spring:IsA("SpringConstraint") then
+                        spring.MinLength = value
+                        spring.MaxLength = value + 0.03
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Botão para ajustar gravidade
 Tabs.Main:AddButton({
     Title = "Ajustar Gravidade",
     Description = "Ajusta a gravidade para aumentar a estabilidade.",
     Callback = function()
         game.Workspace.Gravity = 400
-        print("Gravidade ajustada.")
     end
 })
 
--- Configuração e Notificação de Carregamento
+-- Botão para ajustar som do turbo
+Tabs.Main:AddButton({
+    Title = "Aumentar som do turbo",
+    Description = "(CLIENT)",
+    Callback = function()
+        local container = workspace:FindFirstChild(containerName)
+        if container then
+            local body = container:FindFirstChild("Body")
+            if body and body:FindFirstChild("Engine") then
+                local turboSound = body.Engine:FindFirstChild("Turbo")
+                if turboSound and turboSound:IsA("Sound") then
+                    turboSound.Volume = 1
+                end
+            end
+        end
+    end
+})
+
+-- Notificação de carregamento
 Fluent:Notify({
     Title = "Fluent",
     Content = "O script foi carregado com sucesso.",
     Duration = 8
 })
 
--- Configuração para salvar e carregar
+-- Configuração de salvar e carregar
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 SaveManager:SetFolder("FluentScriptHub/specific-game")
@@ -230,10 +226,3 @@ InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
-
--- Exemplos de manipulação e interação com a GUI fluente
-Fluent:Notify({
-    Title = "Exemplo",
-    Content = "Carregamento do script finalizado.",
-    Duration = 5
-})
