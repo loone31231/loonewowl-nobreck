@@ -122,14 +122,26 @@ Tabs.Main:AddButton({
         if container then
             local body = container:FindFirstChild("Body")
             if body then
+                -- Verifica as placas possíveis
                 local placaBR = body:FindFirstChild("PlacaBR")
-                if placaBR then
-                    placaBR:Destroy()
+                local placaBRdip = body:FindFirstChild("PlacaBRdip")
+                local placaPY = body:FindFirstChild("PlacaPY")
+                
+                -- Verificar se nenhuma placa está presente
+                if not placaBR and not placaBRdip and not placaPY then
+                    print("Nenhuma placa válida encontrada.")
+                else
+                    -- Excluir a placa encontrada
+                    if placaBR then placaBR:Destroy() end
+                    if placaBRdip then placaBRdip:Destroy() end
+                    if placaPY then placaPY:Destroy() end
                 end
             end
         end
     end
 })
+
+
 
 -- Entrada para editar a placa do carro
 Tabs.Main:AddInput("Editar Identifier da Placa", {
@@ -144,10 +156,34 @@ Tabs.Main:AddInput("Editar Identifier da Placa", {
         if container then
             local body = container:FindFirstChild("Body")
             if body then
-                local placas = {body:FindFirstChild("PlacaBR"), body:FindFirstChild("PlacaBRdip")}
-                for _, placa in ipairs(placas) do
-                    if placa and placa:FindFirstChild("Plates") then
-                        local plates = placa.Plates
+                -- Verifica as placas possíveis
+                local placaBR = body:FindFirstChild("PlacaBR")
+                local placaBRdip = body:FindFirstChild("PlacaBRdip")
+                local placaPY = body:FindFirstChild("PlacaPY")
+                
+                -- Verificar se nenhuma placa está presente
+                if not placaBR and not placaBRdip and not placaPY then
+                    print("Nenhuma placa válida encontrada.")
+                else
+                    -- Editar o texto da placa encontrada
+                    if placaBR and placaBR:FindFirstChild("Plates") then
+                        local plates = placaBR.Plates
+                        for _, plate in ipairs(plates:GetChildren()) do
+                            if plate:FindFirstChild("SGUI") and plate.SGUI:FindFirstChild("Identifier") then
+                                plate.SGUI.Identifier.Text = Value
+                            end
+                        end
+                    end
+                    if placaBRdip and placaBRdip:FindFirstChild("Plates") then
+                        local plates = placaBRdip.Plates
+                        for _, plate in ipairs(plates:GetChildren()) do
+                            if plate:FindFirstChild("SGUI") and plate.SGUI:FindFirstChild("Identifier") then
+                                plate.SGUI.Identifier.Text = Value
+                            end
+                        end
+                    end
+                    if placaPY and placaPY:FindFirstChild("Plates") then
+                        local plates = placaPY.Plates
                         for _, plate in ipairs(plates:GetChildren()) do
                             if plate:FindFirstChild("SGUI") and plate.SGUI:FindFirstChild("Identifier") then
                                 plate.SGUI.Identifier.Text = Value
@@ -159,6 +195,8 @@ Tabs.Main:AddInput("Editar Identifier da Placa", {
         end
     end
 })
+
+
 
 -- Slider para ajustar suspensão
 Tabs.Main:AddSlider("Suspensão", {
@@ -198,18 +236,31 @@ Tabs.Main:AddButton({
     Title = "Aumentar som do turbo",
     Description = "(CLIENT)",
     Callback = function()
-        local container = workspace:FindFirstChild(containerName)
+        local container = workspace:FindFirstChild(containerName)  -- Certifique-se de que 'container' está sendo definido
         if container then
             local body = container:FindFirstChild("Body")
-            if body and body:FindFirstChild("Engine") then
-                local turboSound = body.Engine:FindFirstChild("Turbo")
-                if turboSound and turboSound:IsA("Sound") then
-                    turboSound.Volume = 1
+            if body then
+                local engine = body:FindFirstChild("Engine")
+                if engine then
+                    local turboSound = engine:FindFirstChild("Turbo")
+                    if turboSound and turboSound:IsA("Sound") then
+                        turboSound.Volume = 0.6
+                        turboSound.Changed:Connect(function(property)
+                            if property == "Volume" and turboSound.Volume ~= 0.6 then
+                                turboSound.Volume = 0.7
+                            end
+                        end)
+                    end
+                    local bovSound = engine:FindFirstChild("Bov")
+                    if bovSound and bovSound:IsA("Sound") then
+                        bovSound.Volume = 0.6
+                    end
                 end
             end
         end
     end
 })
+
 
 -- Notificação de carregamento
 Fluent:Notify({
